@@ -61,27 +61,28 @@ def filter_df(data):
 
 
 
-def co_occurence(data, rca = True):
-    dict = {}
-    unique = set(data[0])
-    for cat in unique:
-        entities = set(data[1][data[0] == cat])
-    
+def co_occurence(data):
+    co_occ_dict = {}
+    unique = sorted(set(data[0]))
+    for cat_i in unique:
+        entities_i = set(data[1][data[0] == cat_i])
         column = []
-        for cat_2 in unique:
-            if cat == cat_2:
+        for cat_j in unique:
+            if cat_i == cat_j:
                 column.append(1)
             else:
-                entities_j = set(data[1][data[0] == cat_2])
-                shared = entities + entities_j
+                entities_j = set(data[1][data[0] == cat_j])
+                shared = entities_i & entities_j
             
-                cond_prob = shared / max(len(entities, len(entities_j)))
+                cond_prob = len(shared) / max(len(entities_i), len(entities_j))
                 column.append(cond_prob)
         
-        dict[cat] = column
+        co_occ_dict[cat_i] = column
+        df = pd.DataFrame(dict, index=unique)
 
             
             
+
 
 
                 
@@ -90,61 +91,3 @@ def co_occurence(data, rca = True):
             
 
 
-def build_network(self, adj_df):
-        '''
-        Intake pandas df of adjacency matrix from image classifier and outputs symetric normalized covariance matrix of                 clothing items 
-        elements at index [i,j] are the conditional probability of two clothing items being styled together in the same image 
-        
-        Parameters
-        ----------
-        adj_df: pandas dataframe of adjacency matrix of how often clothing items are styled in X posts 
-
-        Returns
-        -------
-        network: symetric normalized covariance matrix of clothing items elements at index [i,j] 
-        are the conditional probability of two clothing items being styled together in the same image 
-        pieces: a list of the article descriptions from column names of adj_df
-
-
-        '''
-        
-        
-        pieces = list(adj_df.index)
-        adj_m = adj_df.to_numpy()
-        
-        
-
-        adj_m = adj_m
-        adj_m_t = adj_m.transpose()
-        
-        
-
-        mat_dot = np.dot(adj_m, adj_m_t)
-        num_photos = np.count_nonzero(adj_m, axis=1) #get number of photos which the article of clothing is styled in
-
-
-        #normalize matrix
-        network = mat_dot / num_photos 
-        network2 = mat_dot / num_photos
-
-        #fill diagonals with zeros so that the network doesn't have any self-loops
-        np.fill_diagonal(network, 0)
-
-        #get the indices for the upper and lower traingles of the matrix
-        i_lower = np.tril_indices(len(mat_dot))
-        i_upper = np.triu_indices(len(mat_dot))
-
-        #make each matrix symmetrical 
-        network[i_lower] = network.T[i_lower]
-        network2[i_upper] = network2.T[i_upper]
-
-        #We want to conservatively estimate the similarity by taking the lower value
-        
-        for i in range(len(network)):
-            for j in range(len(network)):
-                if network2[i][j] < network[i][j]:
-                    network[i][j] = network2[i][j]
-                else:
-                    pass
-
-        return network, pieces
