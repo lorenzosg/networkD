@@ -41,16 +41,16 @@ def prep_data(self, data):
      
  
 def filter_df(data):
-    number_cat = len(set(data[0]))
-    for cat in data[0]:
+    unique_cat = set(data[0])
+    all_cat = data[2].sum()
+    for cat in unique_cat:
+        cat_freq = data[2][data[0] == cat].sum()
         entities = data[1][data[0] == cat]
-        cat_freq = len(data[0] == cat)
-        rca = []
         for ent in entities:
-            categories = data[0][data[1] == ent]
-            rca_num = 1/len(categories)
-            
-            rca_denom = cat_freq/number_cat
+            num = data[2][(data[0] == cat) & (data[1] == ent)]
+            denom = data[2][data[1] == ent].sum()
+            rca_num = num/denom
+            rca_denom = cat_freq/all_cat
             rca = rca_num/rca_denom
             if rca < 1:
                 data = data[~(data[0] == cat) & (data[1] == ent)]
