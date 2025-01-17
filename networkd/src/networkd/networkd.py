@@ -58,9 +58,6 @@ def filter_df(data):
 
             
 
-
-
-
 def co_occurence(data):
     co_occ_dict = {}
     unique = sorted(set(data[0]))
@@ -73,7 +70,6 @@ def co_occurence(data):
             else:
                 entities_j = set(data[1][data[0] == cat_j])
                 shared = entities_i & entities_j
-            
                 cond_prob = len(shared) / max(len(entities_i), len(entities_j))
                 column.append(cond_prob)
         
@@ -82,7 +78,12 @@ def co_occurence(data):
 
             
             
-
+def embed(data, rca = True):
+    df = prep_data(data)
+    if rca == True:
+        df = filter_df(df)
+    co_occ_df = co_occurence(df)
+    return co_occ_df
 
 
                 
