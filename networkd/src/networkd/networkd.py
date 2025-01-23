@@ -3,7 +3,7 @@ import numpy as np
 
 
 
-def prep_data(self, data):
+def prep_data(data):
      '''
      Intake a pandas dataframe or dictionary of two series or lists of type categorical which 
      describe the occurence of categories(1st) inside the entities (2nd) of a bi-parite graph. 
@@ -34,27 +34,23 @@ def prep_data(self, data):
      if len(data.columns) < 3:
          data['value'] = 1
          col_names = data.columns 
-         adj_df = data.pivot(index = col_names[0], columns = col_names[1], values = col_names[2])
-         adj_mat = adj_df.to_numpy()
+         adj_df = data.pivot(index = col_names[0], columns = col_names[1], values = col_names[2]).fillna(0)
 
-     return adj_mat
+     return adj_df
      
  
 def filter_df(data):
-    unique_cat = set(data[0])
-    all_cat = data[2].sum()
-    for cat in unique_cat:
-        cat_freq = data[2][data[0] == cat].sum()
-        entities = data[1][data[0] == cat]
-        for ent in entities:
-            num = data[2][(data[0] == cat) & (data[1] == ent)]
-            denom = data[2][data[1] == ent].sum()
-            rca_num = num/denom
-            rca_denom = cat_freq/all_cat
-            rca = rca_num/rca_denom
-            if rca < 1:
-                data = data[~(data[0] == cat) & (data[1] == ent)]
-    return data
+    cat_sums = data.groupby(data[0])[data[2]].sum()
+    entity_sums = data.groupby(data[1])[data[2]].sum()
+    total_sums = data[2].sum()
+
+    data['rca_num'] = data[2] / data[1].map(entity_sums)
+    data['rca_denom'] = data[0].map(cat_sums) / total_sums
+    data['rca'] = data['rca_num'] / data['rca_denom'] 
+
+    filtered_data = data[data['rca'] >= 1].drop(columns = ['rca_num', 'rca_denom', 'rca'])
+
+    return filtered_data
 
             
 
@@ -74,13 +70,13 @@ def co_occurence(data):
                 column.append(cond_prob)
         
         co_occ_dict[cat_i] = column
-        df = pd.DataFrame(dict, index=unique)
+        df = pd.DataFrame(co_occ_dict, index=unique)
 
             
             
 def embed(data, rca = True):
     df = prep_data(data)
-    if rca == True:
+    if rca:
         df = filter_df(df)
     co_occ_df = co_occurence(df)
     return co_occ_df
