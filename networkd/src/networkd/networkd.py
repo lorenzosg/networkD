@@ -3,12 +3,10 @@ import numpy as np
 
 class embed: 
 
-    def __init__(self, data, rca = True, self_loops = True):
-        self.data = data
+    def __init__(self, rca = True, self_loops = True):
         self.rca = rca
         self.self_loops = self_loops
-        self.filtered_data = None
-        self.co_occ_df = None
+
 
     def prep_data(self, data):
         '''
@@ -69,9 +67,9 @@ class embed:
         data['rca_denom'] = data[0].map(cat_sums) / total_sums
         data['rca'] = data['rca_num'] / data['rca_denom'] 
 
-        self.filtered_data = data[data['rca'] >= 1].drop(columns = ['rca_num', 'rca_denom', 'rca'])
+        filtered_data = data[data['rca'] >= 1].drop(columns = ['rca_num', 'rca_denom', 'rca'])
 
-        return self.filtered_data
+        return filtered_data
 
                 
 
@@ -110,8 +108,8 @@ class embed:
             
             co_occ_dict[cat_i] = column
         
-        self.co_occ_df = pd.DataFrame(co_occ_dict, index=unique)
-        return self.co_occ_df 
+        co_occ_df = pd.DataFrame(co_occ_dict, index=unique)
+        return co_occ_df 
                 
                 
     def embed(self, data, rca = True, self_loops = True):
@@ -130,8 +128,8 @@ class embed:
         df = self.prep_data(data)
         if rca:
             df = self.filter_df(df)
-        self.co_occ_df = self.co_occurence(df, self_loops)
-        return self.co_occ_df
+        co_occ_df = self.co_occurence(df, self_loops)
+        return co_occ_df
 
 
                 
