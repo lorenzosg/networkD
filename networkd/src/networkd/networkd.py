@@ -40,6 +40,20 @@ def prep_data(data):
      
  
 def filter_df(data):
+     '''
+     Intake a pandas dataframe with 3 columns and filter the values by 
+     if the share of the category value within an entity is greater than 
+     the share of the entire cateogry (data[0]) across all entities (data[1]). 
+    
+     Parameters
+     ----------
+     data: pandas dataframe 
+
+     Returns
+     -------
+     filtered_data: adjacency matrix as an n(# of categories) by m(# of entities) numpy array. 
+     '''
+      
     cat_sums = data.groupby(data[0])[data[2]].sum()
     entity_sums = data.groupby(data[1])[data[2]].sum()
     total_sums = data[2].sum()
@@ -55,6 +69,21 @@ def filter_df(data):
             
 
 def co_occurence(data):
+     '''
+     Intake an rca filtered pandas dataframe and calculate a co-occurence matrix by 
+     computing the conditional probability that given the most frequent category another 
+     category will also appear in the same entity for all pairings of categories. 
+
+     Parameters
+     ----------
+     data: pandas dataframe 
+
+     Returns
+     -------
+     df: pandas dataframe
+    
+     '''
+  
     co_occ_dict = {}
     unique = sorted(set(data[0]))
     for cat_i in unique:
@@ -72,9 +101,22 @@ def co_occurence(data):
         co_occ_dict[cat_i] = column
         df = pd.DataFrame(co_occ_dict, index=unique)
 
+    return df 
             
             
 def embed(data, rca = True):
+    '''
+     Call helper functions prep_data and filter_df if necessary in order to embed the data
+     by constructing a co-occurence matrix of the bi-partite graph.  
+    
+     Parameters
+     ----------
+     data: pandas dataframe 
+
+     Returns
+     -------
+     co_occ_df: pandas dataframe of the co-occurence matrix. 
+     '''
     df = prep_data(data)
     if rca:
         df = filter_df(df)
