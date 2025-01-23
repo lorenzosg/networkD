@@ -68,7 +68,7 @@ def filter_df(data):
 
             
 
-def co_occurence(data):
+def co_occurence(data, self_loops):
      '''
      Intake an rca filtered pandas dataframe and calculate a co-occurence matrix by 
      computing the conditional probability that given the most frequent category another 
@@ -91,7 +91,10 @@ def co_occurence(data):
         column = []
         for cat_j in unique:
             if cat_i == cat_j:
-                column.append(1)
+                if self_loops:
+                    column.append(0)
+                else:
+                    column.append(1)
             else:
                 entities_j = set(data[1][data[0] == cat_j])
                 shared = entities_i & entities_j
@@ -104,7 +107,7 @@ def co_occurence(data):
     return df 
             
             
-def embed(data, rca = True):
+def embed(data, rca = True, self_loops = True):
     '''
      Call helper functions prep_data and filter_df if necessary in order to embed the data
      by constructing a co-occurence matrix of the bi-partite graph.  
@@ -120,7 +123,7 @@ def embed(data, rca = True):
     df = prep_data(data)
     if rca:
         df = filter_df(df)
-    co_occ_df = co_occurence(df)
+    co_occ_df = co_occurence(df, self_loops)
     return co_occ_df
 
 
