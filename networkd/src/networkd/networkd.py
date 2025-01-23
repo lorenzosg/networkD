@@ -92,9 +92,9 @@ def co_occurence(data, self_loops):
         for cat_j in unique:
             if cat_i == cat_j:
                 if self_loops:
-                    column.append(0)
-                else:
                     column.append(1)
+                else:
+                    column.append(0)
             else:
                 entities_j = set(data[1][data[0] == cat_j])
                 shared = entities_i & entities_j
