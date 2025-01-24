@@ -1,5 +1,6 @@
 from networkd import networkd as nd
 
+##unit tests for prep_data()
 
 def test_prep_data():
     example = {'category': ['a', 'b', 'c'], 'entity': ['d', 'e', 'f'], 'value': [1,0,1]}
@@ -9,6 +10,7 @@ def test_prep_data():
 
 test_prep_data()
 
+##unit tests for filter_df()
 
 def test_filter_df():
     data = nd.pd.DataFrame({
@@ -53,6 +55,7 @@ def test_filter_df_large_dataset():
 test_filter_df_large_dataset()
 
 
+##unit tests for co_occurence()
 
 def test_co_occurence_basic():
     data = nd.pd.DataFrame({
@@ -98,3 +101,22 @@ def test_co_occurence_empty_data():
 test_co_occurence_empty_data()
 
 
+##integration tests
+
+data = nd.pd.DataFrame({
+    0: ['cat1', 'cat1', 'cat2', 'cat3'],
+    1: ['ent1', 'ent2', 'ent1', 'ent3'],
+    2: [2, 3, 4, 5]
+})          
+
+def test_embed_basic():
+    embedder = nd.embed() 
+    result = embedder.embed(data, rca=True, self_loops=True)
+    
+    expected_output = pd.DataFrame({
+        'cat1': [1, 0.5, 0],
+        'cat2': [0.5, 1, 0],
+        'cat3': [0, 0, 1]
+    }, index=['cat1', 'cat2', 'cat3'])
+    
+    nd.pd.testing.assert_frame_equal(result, expected_output)

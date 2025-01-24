@@ -129,23 +129,7 @@ class embed:
         return co_occ_df
 
 
-data = pd.DataFrame({
-    0: ['cat1', 'cat1', 'cat2', 'cat3'],
-    1: ['ent1', 'ent2', 'ent1', 'ent3'],
-    2: [2, 3, 4, 5]
-})          
 
-def test_embed_basic():
-    embedder = embed() 
-    result = embedder.embed(data, rca=True, self_loops=True)
-    
-    expected_output = pd.DataFrame({
-        'cat1': [1, 0.5, 0],
-        'cat2': [0.5, 1, 0],
-        'cat3': [0, 0, 1]
-    }, index=['cat1', 'cat2', 'cat3'])
-    
-    pd.testing.assert_frame_equal(result, expected_output)
 
             
 
