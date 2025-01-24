@@ -11,8 +11,8 @@ class embed:
         '''
         Intake a pandas dataframe or dictionary of two series or lists of type categorical which 
         describe the occurence of categories(1st) inside the entities (2nd) of a bi-parite graph. 
-        A 3rd numerical column which describes the degree of the relationship of the category with 
-        the entity is optional. 
+        A 3rd numerical column which describes the degree of the relationship of the category within 
+        the entity is optional. If not inlcuded a column of 1's will be assigned. 
         
         Parameters
         ----------
@@ -20,7 +20,7 @@ class embed:
 
         Returns
         -------
-        adj_df: adjacency matrix as an n(# of categories) by m(# of entities) numpy array. 
+        adj_df: pandas dataframe with 3 columns, category, entity, value, in that order.  
         '''
 
         if isinstance(data, pd.DataFrame):
@@ -37,10 +37,8 @@ class embed:
 
         if len(data.columns) < 3:
             data['value'] = 1
-            col_names = data.columns 
-            adj_df = data.pivot(index = col_names[0], columns = col_names[1], values = col_names[2]).fillna(0)
-
-        return adj_df
+        
+        return data
         
     
     def filter_df(self, data):
@@ -131,8 +129,23 @@ class embed:
         return co_occ_df
 
 
-                
+data = pd.DataFrame({
+    0: ['cat1', 'cat1', 'cat2', 'cat3'],
+    1: ['ent1', 'ent2', 'ent1', 'ent3'],
+    2: [2, 3, 4, 5]
+})          
 
+def test_embed_basic():
+    embedder = embed() 
+    result = embedder.embed(data, rca=True, self_loops=True)
+    
+    expected_output = pd.DataFrame({
+        'cat1': [1, 0.5, 0],
+        'cat2': [0.5, 1, 0],
+        'cat3': [0, 0, 1]
+    }, index=['cat1', 'cat2', 'cat3'])
+    
+    pd.testing.assert_frame_equal(result, expected_output)
 
             
 
