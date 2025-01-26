@@ -55,13 +55,13 @@ class embed:
         -------
         filtered_data: adjacency matrix as an n(# of categories) by m(# of entities) numpy array. 
         '''
-        
-        cat_sums = data.groupby(data[0])[data[2]].sum()
-        entity_sums = data.groupby(data[1])[data[2]].sum()
-        total_sums = data[2].sum()
+        col_names = data.columns
+        cat_sums = data.groupby(data[col_names[0]])[col_names[2]].sum()
+        entity_sums = data.groupby(data[col_names[1]])[col_names[2]].sum()
+        total_sums = data[col_names[2]].sum()
 
-        data['rca_num'] = data[2] / data[1].map(entity_sums)
-        data['rca_denom'] = data[0].map(cat_sums) / total_sums
+        data['rca_num'] = data[col_names[2]] / data[col_names[1]].map(entity_sums)
+        data['rca_denom'] = data[col_names[0]].map(cat_sums) / total_sums
         data['rca'] = data['rca_num'] / data['rca_denom'] 
 
         filtered_data = data[data['rca'] >= 1].drop(columns = ['rca_num', 'rca_denom', 'rca'])
@@ -85,11 +85,11 @@ class embed:
         df: pandas dataframe
         
         '''
-    
+        col_names = data.columns
         co_occ_dict = {}
-        unique = sorted(set(data[0]))
+        unique = sorted(set(data[col_names[0]]))
         for cat_i in unique:
-            entities_i = set(data[1][data[0] == cat_i])
+            entities_i = set(data[col_names[1]][data[col_names[0]] == cat_i])
             column = []
             for cat_j in unique:
                 if cat_i == cat_j:
@@ -98,7 +98,7 @@ class embed:
                     else:
                         column.append(0)
                 else:
-                    entities_j = set(data[1][data[0] == cat_j])
+                    entities_j = set(data[col_names[1]][data[col_names[0]] == cat_j])
                     shared = entities_i & entities_j
                     cond_prob = len(shared) / max(len(entities_i), len(entities_j))
                     column.append(cond_prob)
