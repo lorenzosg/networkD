@@ -109,7 +109,7 @@ class embed:
         return co_occ_df 
                 
                 
-    def embed(self, data, rca = True, self_loops = True):
+    def embed(self, data, rca = False, self_loops = True):
         '''
         Call helper functions prep_data and filter_df if necessary in order to embed the data
         by constructing a co-occurence matrix of the bi-partite graph.  
