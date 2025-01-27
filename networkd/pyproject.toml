@@ -5,6 +5,8 @@ description = "A package to quickly embed and analyze abstract data types!"
 authors = ["Lorenzo Giamartino"]
 license = "MIT"
 readme = "README.md"
+homepage = "https://github.com/lorenzosg/networkD"
+repository = "https://github.com/lorenzosg/networkD"
 
 [tool.poetry.dependencies]
 python = "^3.9"
