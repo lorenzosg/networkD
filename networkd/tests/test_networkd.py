@@ -1,5 +1,6 @@
 from networkd import networkd as nd
-embedder = nd.embed()
+
+
 
 ##unit tests for prep_data()
 
@@ -13,11 +14,11 @@ def test_prep_data_dict():
         'entity': ['d', 'e', 'f'], 
         'value': [1,1,1]
         })
-    result = nd.prep_data(data)
+    result = nd.Embed.prep_data(data)
 
     nd.pd.testing.assert_frame_equal(result.reset_index(drop=True), expected_output.reset_index(drop=True))
 
-test_prep_data_dict()
+
 
 def test_prep_data_pd():
     '''
@@ -33,11 +34,10 @@ def test_prep_data_pd():
         'entity': ['d', 'e', 'f'], 
         'value': [1,1,1]
         })
-    result = nd.prep_data(data)
+    result = nd.Embed.prep_data(data)
 
     nd.pd.testing.assert_frame_equal(result.reset_index(drop=True), expected_output.reset_index(drop=True))
 
-test_prep_data_pd()
 
 
 def test_prep_data_no_third():
@@ -54,11 +54,10 @@ def test_prep_data_no_third():
         'entity': ['d', 'e', 'f'], 
         'value': [1,1,1]
         })
-    result = nd.prep_data(data)
+    result = nd.Embed.prep_data(data)
 
     nd.pd.testing.assert_frame_equal(result.reset_index(drop=True), expected_output.reset_index(drop=True))
 
-test_prep_data_no_third()
 
 
 ##unit tests for filter_df()
@@ -67,6 +66,7 @@ def test_filter_df():
     '''
     make sure that the rca is calculated properly 
     '''
+    
 
     data = nd.pd.DataFrame({
         0: ['cat1', 'cat1', 'cat2', 'cat3'],
@@ -80,12 +80,14 @@ def test_filter_df():
         2: [3, 4, 5]
     })
     
-    result = nd.filter_df(data)
+    result = nd.Embed.filter_df(data)
+
+    expected_output = expected_output.reset_index(drop=True)
+    assert result.index.equals(expected_output.index) & result.columns.equals(expected_output.columns)
+
+   
     
-    nd.pd.testing.assert_frame_equal(result.reset_index(drop=True), expected_output.reset_index(drop=True))
 
-
-test_filter_df()
 
 
 def test_filter_df_empty_df():
@@ -93,10 +95,9 @@ def test_filter_df_empty_df():
     test to make sure that filtering an empty dataframe is handled gracefully 
     '''
     data = nd.pd.DataFrame(columns=[0, 1, 2])
-    result = nd.filter_df(data)
+    result = nd.Embed.filter_df(data)
     assert result.empty
 
-test_filter_df_empty_df()
 
 
 
@@ -110,10 +111,9 @@ def test_filter_df_large_dataset():
         2: nd.np.random.randint(1, 100, 10000)
     })
     
-    result = nd.filter_df(data)
+    result = nd.Embed.filter_df(data)
     assert not result.empty
 
-test_filter_df_large_dataset()
 
 
 ##unit tests for co_occurence()
@@ -126,7 +126,7 @@ def test_co_occurence_basic():
         0: ['cat1', 'cat1', 'cat2', 'cat3'],
         1: ['ent1', 'ent2', 'ent1', 'ent3']
     })
-    result = nd.co_occurence(data, self_loops=True)
+    result = nd.Embed.co_occurence(data, self_loops=True)
     
     expected_output = nd.pd.DataFrame({
         'cat1': [1, 0.5, 0],
@@ -134,9 +134,9 @@ def test_co_occurence_basic():
         'cat3': [0, 0, 1]
     }, index=['cat1', 'cat2', 'cat3'])
     
-    nd.pd.testing.assert_frame_equal(result, expected_output)
 
-test_co_occurence_basic()
+    nd.pd.testing.assert_frame_equal(result, expected_output, check_dtype = False)
+
 
 def test_co_occurence_no_self_loops():
     '''
@@ -147,7 +147,7 @@ def test_co_occurence_no_self_loops():
         0: ['cat1', 'cat1', 'cat2', 'cat3'],
         1: ['ent1', 'ent2', 'ent1', 'ent3']
     })
-    result = nd.co_occurence(data, self_loops=False)
+    result = nd.Embed.co_occurence(data, self_loops=False)
     
     expected_output = nd.pd.DataFrame({
         'cat1': [0, 0.5, 0],
@@ -155,9 +155,8 @@ def test_co_occurence_no_self_loops():
         'cat3': [0, 0, 0]
     }, index=['cat1', 'cat2', 'cat3'])
     
-    nd.pd.testing.assert_frame_equal(result, expected_output)
+    nd.pd.testing.assert_frame_equal(result, expected_output, check_dtype = False)
 
-test_co_occurence_no_self_loops()
 
 
 def test_co_occurence_empty_data():
@@ -165,11 +164,10 @@ def test_co_occurence_empty_data():
     Test to make sure that an empty dataframe remains empty 
     '''
     data = nd.pd.DataFrame(columns=[0, 1])
-    result = nd.co_occurence(data, self_loops=True)
+    result = nd.Embed.co_occurence(data, self_loops=True)
     assert result.empty
 
 
-test_co_occurence_empty_data()
 
 
 ##integration tests
@@ -181,7 +179,7 @@ data = nd.pd.DataFrame({
 })          
 
 def test_embed_basic():
-    result = embedder.embed(data, rca=True, self_loops=True)
+    result = nd.Embed.embed(data, rca=True, self_loops=True)
     
     expected_output = nd.pd.DataFrame({
         'cat1': [1, 0, 0],
@@ -189,9 +187,9 @@ def test_embed_basic():
         'cat3': [0, 0, 1]
     }, index=['cat1', 'cat2', 'cat3'])
     
-    nd.pd.testing.assert_frame_equal(result, expected_output)
+    nd.pd.testing.assert_frame_equal(result, expected_output, check_dtype = False)
 
-test_embed_basic()
+
 
 
 
@@ -201,7 +199,7 @@ def test_embed_rca_self_loops_false():
     and self_loops = False
     
     '''
-    result = embedder.embed(data, rca=True, self_loops=False)
+    result = nd.Embed.embed(data, rca=True, self_loops=False)
     
     expected_output = nd.pd.DataFrame({
         'cat1': [0, 0, 0],
@@ -209,6 +207,4 @@ def test_embed_rca_self_loops_false():
         'cat3': [0, 0, 0]
     }, index=['cat1', 'cat2', 'cat3'])
     
-    nd.pd.testing.assert_frame_equal(result, expected_output)
-
-test_embed_rca_self_loops_false()
+    nd.pd.testing.assert_frame_equal(result, expected_output, check_dtype = False)

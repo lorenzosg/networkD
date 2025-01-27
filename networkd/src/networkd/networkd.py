@@ -1,13 +1,10 @@
 import pandas as pd
+import numpy as np
 
-class embed: 
+class Embed: 
 
-    def __init__(self, rca = True, self_loops = True):
-        self.rca = rca
-        self.self_loops = self_loops
-
-
-    def prep_data(self, data):
+    @staticmethod
+    def prep_data(data):
         '''
         Intake a pandas dataframe or dictionary of two series or lists of type categorical which 
         describe the occurence of categories(1st) inside the entities (2nd) of a bi-parite graph. 
@@ -40,8 +37,8 @@ class embed:
         
         return data
         
-    
-    def filter_df(self, data):
+    @staticmethod
+    def filter_df(data):
         '''
         Intake a pandas dataframe with 3 columns and filter the values by 
         if the share of the category value within an entity is greater than 
@@ -55,6 +52,7 @@ class embed:
         -------
         filtered_data: adjacency matrix as an n(# of categories) by m(# of entities) numpy array. 
         '''
+
         col_names = data.columns
         cat_sums = data.groupby(data[col_names[0]])[col_names[2]].sum()
         entity_sums = data.groupby(data[col_names[1]])[col_names[2]].sum()
@@ -66,11 +64,16 @@ class embed:
 
         filtered_data = data[data['rca'] >= 1].drop(columns = ['rca_num', 'rca_denom', 'rca'])
 
+        for col in list(data.columns)[:2]:
+            filtered_data[col] = filtered_data[col].astype(data[col].dtype)
+        
+        filtered_data = filtered_data.reset_index(drop = True)
+        
         return filtered_data
 
                 
-
-    def co_occurence(self, data, self_loops):
+    @staticmethod
+    def co_occurence(data, self_loops):
         '''
         Intake an rca filtered pandas dataframe and calculate a co-occurence matrix by 
         computing the conditional probability that given the most frequent category another 
@@ -108,8 +111,8 @@ class embed:
         co_occ_df = pd.DataFrame(co_occ_dict, index=unique)
         return co_occ_df 
                 
-                
-    def embed(self, data, rca = False, self_loops = True):
+    @staticmethod            
+    def embed(data, rca = False, self_loops = True):
         '''
         Call helper functions prep_data and filter_df if necessary in order to embed the data
         by constructing a co-occurence matrix of the bi-partite graph.  
@@ -122,10 +125,10 @@ class embed:
         -------
         co_occ_df: pandas dataframe of the co-occurence matrix. 
         '''
-        df = self.prep_data(data)
+        df = Embed.prep_data(data)
         if rca:
-            df = self.filter_df(df)
-        co_occ_df = self.co_occurence(df, self_loops)
+            df = Embed.filter_df(df)
+        co_occ_df = Embed.co_occurence(df, self_loops)
         return co_occ_df
 
 
