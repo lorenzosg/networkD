@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "networkd"
-version = "0.1.2"
+version = "0.1.3"
 description = "A package to quickly embed and analyze abstract data types!"
 authors = ["Lorenzo Giamartino"]
 license = "MIT"
@@ -10,7 +10,7 @@ repository = "https://github.com/lorenzosg/networkD"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pandas = "^2.2.3"
+pandas = ">=2.0,<3.0"
 
 
 [tool.poetry.group.dev.dependencies]
