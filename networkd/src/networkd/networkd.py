@@ -8,8 +8,8 @@ class Embed:
         '''
         Intake a pandas dataframe or dictionary of two series or lists of type categorical which 
         describe the occurence of categories(1st) inside the entities (2nd) of a bi-parite graph. 
-        A 3rd numerical column which describes the degree of the relationship of the category within 
-        the entity is optional. If not inlcuded a column of 1's will be assigned. 
+        A 3rd numerical list which describes the degree of the relationship of the category within 
+        the entity is optional. If not inlcuded a list of 1's will be assigned. 
         
         Parameters
         ----------
@@ -17,28 +17,41 @@ class Embed:
 
         Returns
         -------
-        adj_df: pandas dataframe with 3 columns, category, entity, value, in that order.  
+        np_adj: a numpy array of the dimensions [number of unique cateogries, number of unique entities]
         '''
 
-        if isinstance(data, pd.DataFrame):
-            pass
-        elif isinstance(data, dict):
+        if isinstance(data, dict):
             if all(isinstance(col, list) for col in data.values()):
-                data = pd.DataFrame(data)
+                pass
             else: 
                 value_types = [type(x) for x in data.values()]
                 ValueError(f'Dictionary values must be lists. Got types {value_types} instead')
+
+        elif isinstance(data, pd.DataFrame):
+                data = data.to_dict(orient='list')
+            
         else:
             raise TypeError(f'data must be a pandas dataframe or dictionary. Got type {type(data)} instead')
 
-
-        if len(data.columns) < 3:
-            data['value'] = 1
+        if len(data) < 3:
+            data['value'] = np.ones(len(next(iter(data.values()))), dtype=int).tolist()
         
-        return data
+        keys = list(data.keys())
+
+        row_labels, col_labels = (np.unique(data[k]) for k in list(data.keys())[:2])
+
+        row_map = {label: i for i, label in enumerate(row_labels)}
+        col_map = {label: i for i, label in enumerate(col_labels)}
+
+        np_adj = np.zeros(len(row_labels), len(col_labels))
+
+        for r, c, v in zip(data[keys[0]], data[keys[1]], data['value']):
+            np_adj = [row_map[r], col_map[c]] = v
+        
+        return np_adj
         
     @staticmethod
-    def filter_df(data):
+    def filter_df(np_adj):
         '''
         Intake a pandas dataframe with 3 columns and filter the values by 
         if the share of the category value within an entity is greater than 
