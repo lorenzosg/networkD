@@ -101,6 +101,11 @@ class Embed:
 
         network = np.minimum(gram_np, gram_np.T)
 
+        if self_loops:
+            pass
+        else:
+            np.fill_diagonal(network, 0)
+
         return network
 
                 
@@ -116,13 +121,13 @@ class Embed:
 
         Returns
         -------
-        co_occ_df: pandas dataframe of the co-occurence matrix. 
+        co_occ_df: numpy array of the co-occurence matrix. 
         '''
-        df = Embed.prep_data(data)
+        matrix = Embed.prep_data(data)
         if rca:
-            df = Embed.filter_df(df)
-        co_occ_df = Embed.co_occurence(df, self_loops)
-        return co_occ_df
+            matrix = Embed.filter_df(matrix)
+        co_occ_np = Embed.co_occurence(matrix, self_loops)
+        return co_occ_np
 
 
 
