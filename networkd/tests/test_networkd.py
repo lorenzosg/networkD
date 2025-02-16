@@ -9,14 +9,13 @@ def test_prep_data_dict():
     make sure that the prep_data function can properly handle a dictionary as input 
     '''
     data = {'category': ['a', 'b', 'c'], 'entity': ['d', 'e', 'f'], 'value': [1,1,1]}
-    expected_output = nd.pd.DataFrame({
-        'category': ['a', 'b', 'c'], 
-        'entity': ['d', 'e', 'f'], 
-        'value': [1,1,1]
-        })
+    expected_output = nd.np.array([
+        [1, 0, 0], 
+        [0, 1, 0], 
+        [0, 0, 1]])
     result = nd.Embed.prep_data(data)
 
-    nd.pd.testing.assert_frame_equal(result.reset_index(drop=True), expected_output.reset_index(drop=True))
+    nd.np.testing.assert_array_equal(result, expected_output)
 
 
 
@@ -29,14 +28,13 @@ def test_prep_data_pd():
         'entity': ['d', 'e', 'f'], 
         'value': [1,1,1]})
     
-    expected_output = nd.pd.DataFrame({
-        'category': ['a', 'b', 'c'], 
-        'entity': ['d', 'e', 'f'], 
-        'value': [1,1,1]
-        })
+    expected_output = nd.np.array([
+        [1, 0, 0], 
+        [0, 1, 0], 
+        [0, 0, 1]])
     result = nd.Embed.prep_data(data)
 
-    nd.pd.testing.assert_frame_equal(result.reset_index(drop=True), expected_output.reset_index(drop=True))
+    nd.np.testing.assert_array_equal(result, expected_output)
 
 
 
@@ -49,14 +47,13 @@ def test_prep_data_no_third():
         'entity': ['d', 'e', 'f'],
         })
     
-    expected_output = nd.pd.DataFrame({
-        'category': ['a', 'b', 'c'], 
-        'entity': ['d', 'e', 'f'], 
-        'value': [1,1,1]
-        })
+    expected_output = nd.np.array([
+        [1, 0, 0], 
+        [0, 1, 0], 
+        [0, 0, 1]])
     result = nd.Embed.prep_data(data)
 
-    nd.pd.testing.assert_frame_equal(result.reset_index(drop=True), expected_output.reset_index(drop=True))
+    nd.np.testing.assert_array_equal(result, expected_output)
 
 
 
@@ -66,24 +63,18 @@ def test_filter_df():
     '''
     make sure that the rca is calculated properly 
     '''
-    
+    data = nd.np.array([[1, 1, 0],
+                        [1, 0, 0],
+                        [0, 0, 1]])
 
-    data = nd.pd.DataFrame({
-        0: ['cat1', 'cat1', 'cat2', 'cat3'],
-        1: ['ent1', 'ent2', 'ent1', 'ent3'],
-        2: [2, 3, 4, 5]
-    })
 
-    expected_output = nd.pd.DataFrame({
-        0: ['cat1', 'cat2', 'cat3'],
-        1: ['ent2', 'ent1', 'ent3'],
-        2: [3, 4, 5]
-    })
+    expected_output = nd.np.array([[1, 1, 0],
+                                   [1, 0, 0],
+                                    [0, 0, 1]])
     
     result = nd.Embed.filter_df(data)
 
-    expected_output = expected_output.reset_index(drop=True)
-    assert result.index.equals(expected_output.index) & result.columns.equals(expected_output.columns)
+    nd.np.testing.assert_array_equal(result, expected_output)
 
    
     
@@ -96,7 +87,7 @@ def test_filter_df_empty_df():
     '''
     data = nd.pd.DataFrame(columns=[0, 1, 2])
     result = nd.Embed.filter_df(data)
-    assert result.empty
+    assert result.size == 0
 
 
 
@@ -111,8 +102,11 @@ def test_filter_df_large_dataset():
         2: nd.np.random.randint(1, 100, 10000)
     })
     
+    expected_rows = len(nd.np.unique(data['cat']))
+    expected_cols = len(nd.np.unique(data['ent']))
+
     result = nd.Embed.filter_df(data)
-    assert not result.empty
+    assert result.shape == (expected_rows, expected_cols)
 
 
 
@@ -126,16 +120,15 @@ def test_co_occurence_basic():
         0: ['cat1', 'cat1', 'cat2', 'cat3'],
         1: ['ent1', 'ent2', 'ent1', 'ent3']
     })
+    
+    expected_output = nd.np.array([
+        [1, 0.5, 0],
+        [0.5, 1, 0],
+         [0, 0, 1]
+    ])
+    
     result = nd.Embed.co_occurence(data, self_loops=True)
-    
-    expected_output = nd.pd.DataFrame({
-        'cat1': [1, 0.5, 0],
-        'cat2': [0.5, 1, 0],
-        'cat3': [0, 0, 1]
-    }, index=['cat1', 'cat2', 'cat3'])
-    
-
-    nd.pd.testing.assert_frame_equal(result, expected_output, check_dtype = False)
+    nd.np.testing.assert_array_equal(result, expected_output)
 
 
 def test_co_occurence_no_self_loops():
@@ -147,15 +140,15 @@ def test_co_occurence_no_self_loops():
         0: ['cat1', 'cat1', 'cat2', 'cat3'],
         1: ['ent1', 'ent2', 'ent1', 'ent3']
     })
-    result = nd.Embed.co_occurence(data, self_loops=False)
     
-    expected_output = nd.pd.DataFrame({
-        'cat1': [0, 0.5, 0],
-        'cat2': [0.5, 0, 0],
-        'cat3': [0, 0, 0]
-    }, index=['cat1', 'cat2', 'cat3'])
+    expected_output = nd.np.array([
+        [0, 0.5, 0],
+        [0.5, 0, 0],
+         [0, 0, 0]
+    ])
     
-    nd.pd.testing.assert_frame_equal(result, expected_output, check_dtype = False)
+    result = nd.Embed.co_occurence(data, self_loops=True)
+    nd.np.testing.assert_allclose(result, expected_output, rtol=1e-5, atol=1e-8)
 
 
 
@@ -165,7 +158,7 @@ def test_co_occurence_empty_data():
     '''
     data = nd.pd.DataFrame(columns=[0, 1])
     result = nd.Embed.co_occurence(data, self_loops=True)
-    assert result.empty
+    assert result.size == 0
 
 
 
@@ -181,13 +174,12 @@ data = nd.pd.DataFrame({
 def test_embed_basic():
     result = nd.Embed.embed(data, rca=True, self_loops=True)
     
-    expected_output = nd.pd.DataFrame({
-        'cat1': [1, 0, 0],
-        'cat2': [0, 1, 0],
-        'cat3': [0, 0, 1]
-    }, index=['cat1', 'cat2', 'cat3'])
+    expected_output = nd.np.array([
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1]])
     
-    nd.pd.testing.assert_frame_equal(result, expected_output, check_dtype = False)
+    nd.np.testing.assert_allclose(result, expected_output, rtol=1e-5, atol=1e-8)
 
 
 
@@ -201,10 +193,9 @@ def test_embed_rca_self_loops_false():
     '''
     result = nd.Embed.embed(data, rca=True, self_loops=False)
     
-    expected_output = nd.pd.DataFrame({
-        'cat1': [0, 0, 0],
-        'cat2': [0, 0, 0],
-        'cat3': [0, 0, 0]
-    }, index=['cat1', 'cat2', 'cat3'])
+    expected_output = nd.np.array([
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0]])
     
-    nd.pd.testing.assert_frame_equal(result, expected_output, check_dtype = False)
+    nd.np.testing.assert_allclose(result, expected_output, rtol=1e-5, atol=1e-8)
