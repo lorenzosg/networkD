@@ -77,7 +77,7 @@ class Embed:
         
                 
     @staticmethod
-    def co_occurence(data, self_loops):
+    def co_occurence(rca_np, self_loops):
         '''
         Intake an rca filtered pandas dataframe and calculate a co-occurence matrix by 
         computing the conditional probability that given the most frequent category another 
@@ -92,28 +92,17 @@ class Embed:
         df: pandas dataframe
         
         '''
-        col_names = data.columns
-        co_occ_dict = {}
-        unique = sorted(set(data[col_names[0]]))
-        for cat_i in unique:
-            entities_i = set(data[col_names[1]][data[col_names[0]] == cat_i])
-            column = []
-            for cat_j in unique:
-                if cat_i == cat_j:
-                    if self_loops:
-                        column.append(1)
-                    else:
-                        column.append(0)
-                else:
-                    entities_j = set(data[col_names[1]][data[col_names[0]] == cat_j])
-                    shared = entities_i & entities_j
-                    cond_prob = len(shared) / max(len(entities_i), len(entities_j))
-                    column.append(cond_prob)
-            
-            co_occ_dict[cat_i] = column
-        
-        co_occ_df = pd.DataFrame(co_occ_dict, index=unique)
-        return co_occ_df 
+
+        gram_np = np.dot(rca_np, rca_np.T)
+
+        degree = np.count_nonzero(rca_np, axis = 1)
+
+        gram_np = gram_np / degree 
+
+        network = np.minimum(gram_np, gram_np.T)
+
+        return network
+
                 
     @staticmethod            
     def embed(data, rca = False, self_loops = True):
