@@ -36,6 +36,7 @@ class Embed:
         if len(data) < 3:
             data['value'] = np.ones(len(next(iter(data.values()))), dtype=int).tolist()
         
+        
         keys = list(data.keys())
 
         row_labels, col_labels = (np.unique(data[k]) for k in list(data.keys())[:2])
@@ -43,11 +44,13 @@ class Embed:
         row_map = {label: i for i, label in enumerate(row_labels)}
         col_map = {label: i for i, label in enumerate(col_labels)}
 
-        np_adj = np.zeros(len(row_labels), len(col_labels))
+        np_adj = np.zeros((len(row_labels), len(col_labels)), dtype = int)
+        #print(f'np_adj is {np_adj} and of type {type(np_adj)}')
 
-        for r, c, v in zip(data[keys[0]], data[keys[1]], data['value']):
-            np_adj = [row_map[r], col_map[c]] = v
+        for r, c, v in zip(data[keys[0]], data[keys[1]], data[keys[2]]):
+            np_adj[row_map[r], col_map[c]] = v
         
+        #print(f'matrix after cleaning {np_adj}')
         return np_adj
         
     @staticmethod
@@ -92,7 +95,7 @@ class Embed:
         df: pandas dataframe
         
         '''
-
+        #print(f'rca in co-occurence function {rca_np}')
         gram_np = np.dot(rca_np, rca_np.T)
 
         degree = np.count_nonzero(rca_np, axis = 1)
@@ -110,7 +113,7 @@ class Embed:
 
                 
     @staticmethod            
-    def embed(data, rca = False, self_loops = True):
+    def embed(data, rca = True, threshold = 1, self_loops = True):
         '''
         Call helper functions prep_data and filter_df if necessary in order to embed the data
         by constructing a co-occurence matrix of the bi-partite graph.  
@@ -125,7 +128,7 @@ class Embed:
         '''
         matrix = Embed.prep_data(data)
         if rca:
-            matrix = Embed.filter_df(matrix)
+            matrix = Embed.filter_df(matrix, threshold)
         co_occ_np = Embed.co_occurence(matrix, self_loops)
         return co_occ_np
 
