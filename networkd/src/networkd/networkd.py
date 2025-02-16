@@ -51,9 +51,9 @@ class Embed:
         return np_adj
         
     @staticmethod
-    def filter_df(np_adj):
+    def filter_df(np_adj, threshold):
         '''
-        Intake a pandas dataframe with 3 columns and filter the values by 
+        Intake a numpy array adjacency matrix and filter the values by 
         if the share of the category value within an entity is greater than 
         the share of the entire cateogry (data[0]) across all entities (data[1]). 
         
@@ -65,25 +65,16 @@ class Embed:
         -------
         filtered_data: adjacency matrix as an n(# of categories) by m(# of entities) numpy array. 
         '''
+         
+        cat_share_in_ent = np_adj / np_adj.sum(axis = 0, keepdims = True)
+        cat_share_all = np_adj.sum(axis = 1, keepdims = True) / np_adj.sum()
 
-        col_names = data.columns
-        cat_sums = data.groupby(data[col_names[0]])[col_names[2]].sum()
-        entity_sums = data.groupby(data[col_names[1]])[col_names[2]].sum()
-        total_sums = data[col_names[2]].sum()
+        rca_np = cat_share_in_ent / cat_share_all
 
-        data['rca_num'] = data[col_names[2]] / data[col_names[1]].map(entity_sums)
-        data['rca_denom'] = data[col_names[0]].map(cat_sums) / total_sums
-        data['rca'] = data['rca_num'] / data['rca_denom'] 
+        rca_np = np.where(rca_np < threshold, 0, 1)
 
-        filtered_data = data[data['rca'] >= 1].drop(columns = ['rca_num', 'rca_denom', 'rca'])
-
-        for col in list(data.columns)[:2]:
-            filtered_data[col] = filtered_data[col].astype(data[col].dtype)
+        return rca_np 
         
-        filtered_data = filtered_data.reset_index(drop = True)
-        
-        return filtered_data
-
                 
     @staticmethod
     def co_occurence(data, self_loops):
