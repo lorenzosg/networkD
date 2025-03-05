@@ -104,7 +104,6 @@ class Embed:
         df: pandas dataframe
         
         '''
-        #print(f'rca in co-occurence function {rca_np}')
         gram_np = np.dot(rca_np, rca_np.T)
 
         degree = np.count_nonzero(rca_np, axis = 1)
@@ -122,7 +121,7 @@ class Embed:
 
                 
     @staticmethod            
-    def embed(data, rca = True, threshold = 1, self_loops = True):
+    def embed(data, rca = True, threshold = 1, self_loops = True, labels = False):
         '''
         Call helper functions prep_data and filter_df if necessary in order to embed the data
         by constructing a co-occurence matrix of the bi-partite graph.  
@@ -135,11 +134,18 @@ class Embed:
         -------
         co_occ_df: numpy array of the co-occurence matrix. 
         '''
-        matrix = Embed.prep_data(data)
+        row_labels, col_labels = None, None
+
+        if labels: 
+            matrix, row_labels, col_labels = Embed.prep_data(data)
+        else: 
+            matrix = Embed.prep_data(data)
+            
         if rca:
             matrix = Embed.filter_df(matrix, threshold)
         co_occ_np = Embed.co_occurence(matrix, self_loops)
-        return co_occ_np
+
+        return co_occ_np, row_labels, col_labels 
 
 
 
