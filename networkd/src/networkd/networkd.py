@@ -4,7 +4,7 @@ import numpy as np
 class Embed: 
 
     @staticmethod
-    def prep_data(data):
+    def prep_data(data, labels = False):
         '''
         Intake a pandas dataframe or dictionary of two series or lists of type categorical which 
         describe the occurence of categories(1st) inside the entities (2nd) of a bi-parite graph. 
@@ -25,7 +25,7 @@ class Embed:
                 pass
             else: 
                 value_types = [type(x) for x in data.values()]
-                ValueError(f'Dictionary values must be lists. Got types {value_types} instead')
+                raise ValueError(f'Dictionary values must be lists. Got types {value_types} instead')
 
         elif isinstance(data, pd.DataFrame):
                 data = data.to_dict(orient='list')
@@ -45,13 +45,18 @@ class Embed:
         col_map = {label: i for i, label in enumerate(col_labels)}
 
         np_adj = np.zeros((len(row_labels), len(col_labels)), dtype = int)
-        #print(f'np_adj is {np_adj} and of type {type(np_adj)}')
 
         for r, c, v in zip(data[keys[0]], data[keys[1]], data[keys[2]]):
             np_adj[row_map[r], col_map[c]] = v
+
+        if labels: 
+
+            return np_adj, row_labels, col_labels
         
-        #print(f'matrix after cleaning {np_adj}')
-        return np_adj
+        else: 
+
+            return np_adj
+
         
     @staticmethod
     def filter_df(np_adj, threshold):
@@ -68,7 +73,11 @@ class Embed:
         -------
         filtered_data: adjacency matrix as an n(# of categories) by m(# of entities) numpy array. 
         '''
-         
+        if isinstance(np_adj, np.ndarray): 
+            pass
+        else:
+            raise TypeError(f'input must be a numpy array, got {type(np_adj)} instead')
+        
         cat_share_in_ent = np_adj / np_adj.sum(axis = 0, keepdims = True)
         cat_share_all = np_adj.sum(axis = 1, keepdims = True) / np_adj.sum()
 
